@@ -190,9 +190,9 @@ func (it *robot) Diagnostics(target *common.DiagnosticStatus, production bool) {
 	diagnose := target.Diagnose("Robot")
 	it.diagnoseTasks(diagnose)
 	it.diagnoseVariousPaths(diagnose)
-	inside, err := common.IsInsideRobocorpHome(it.WorkingDirectory())
+	inside, err := common.IsInsideProductHome(it.WorkingDirectory())
 	if err == nil && inside {
-		diagnose.Warning(0, "", "Robot working directory %q is inside ROBOCORP_HOME (%s)", it.WorkingDirectory(), common.RobocorpHome())
+		diagnose.Warning(0, "", "Robot working directory %q is inside %s (%s)", it.WorkingDirectory(), common.Product.HomeVariable(), common.Product.Home())
 	}
 	if it.Artifacts == "" {
 		diagnose.Fail(0, "", "In robot.yaml, 'artifactsDir:' is required!")
@@ -203,19 +203,17 @@ func (it *robot) Diagnostics(target *common.DiagnosticStatus, production bool) {
 			diagnose.Ok(0, "Artifacts directory defined in robot.yaml")
 		}
 	}
-	if it.Conda == "" {
-		diagnose.Ok(0, "In robot.yaml, 'condaConfigFile:' is missing. So this is shell robot.")
+	effectiveConfig := it.CondaConfigFile()
+	if effectiveConfig == "" {
+		diagnose.Ok(0, "In robot.yaml, effective environment configuration is missing. So this is shell robot.")
+		target.Details["cacheable-environment-configuration"] = "false"
 	} else {
-		if filepath.IsAbs(it.Conda) {
-			diagnose.Fail(0, "", "condaConfigFile %q seems to be absolute, which makes robot machine dependent.", it.Artifacts)
+		diagnose.Ok(0, "In robot.yaml, environment configuration %q is present. So this is python robot.", effectiveConfig)
+		condaEnv, err := conda.ReadPackageCondaYaml(effectiveConfig)
+		if err != nil {
+			diagnose.Fail(0, "", "From robot.yaml, loading conda.yaml failed with: %v", err)
 		} else {
-			diagnose.Ok(0, "In robot.yaml, 'condaConfigFile:' is present. So this is python robot.")
-			condaEnv, err := conda.ReadCondaYaml(it.CondaConfigFile())
-			if err != nil {
-				diagnose.Fail(0, "", "From robot.yaml, loading conda.yaml failed with: %v", err)
-			} else {
-				condaEnv.Diagnostics(target, production)
-			}
+			condaEnv.Diagnostics(target, production)
 		}
 	}
 	target.Details["robot-use-conda"] = fmt.Sprintf("%v", it.UsesConda())
@@ -279,7 +277,7 @@ func (it *robot) VerifyCondaDependencies() bool {
 	if len(dependencies) == 0 {
 		return true
 	}
-	condaEnv, err := conda.ReadCondaYaml(it.CondaConfigFile())
+	condaEnv, err := conda.ReadPackageCondaYaml(it.CondaConfigFile())
 	if err != nil {
 		return true
 	}

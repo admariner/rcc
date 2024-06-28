@@ -1,5 +1,97 @@
 # rcc change log
 
+## v18.1.2 (date: 28.6.2024)
+
+- updated default settings.yaml for Sema4.ai products.
+- templates location also back in Sema4.ai settings.yaml.
+- documentation updates
+
+## v18.1.1 (date: 26.6.2024) WORK IN PROGRESS
+
+- bug fix: too many commands were only visible with `--robocorp` product
+  strategy, but they are needed also in `--sema4ai` strategy
+
+## v18.1.0 (date: 26.6.2024) WORK IN PROGRESS
+
+- new command `feedback batch` for applications to send many metrics at once
+- disabling rcc internal metrics based on product strategy
+- bug fix: journal appending as more atomic operation (just one write)
+
+## v18.0.5 (date: 14.6.2024) WORK IN PROGRESS
+
+- MAJOR breaking change: now command `rcc configuration settings` will require
+  `--defaults` flag to show defaults template. Without it, default functionality
+  now is to show effective/active settings in YAML format.
+
+## v18.0.4 (date: 12.6.2024) WORK IN PROGRESS
+
+- Additional `--robocorp` product flag added. To match `--sema4ai` flag.
+- Now using `%ProgramData%` instead of hard coded `c:\ProgramData\` in code.
+- Update on default `settings.yaml` for Sema4.ai products.
+
+## v18.0.3 (date: 7.6.2024) WORK IN PROGRESS
+
+- Windows bugfix: icacls now applied on shared holotree location from product
+  strategy (was hardcoded before)
+
+## v18.0.2 (date: 7.6.2024) WORK IN PROGRESS
+
+- default `settings.yaml` is now behind product strategy (each product can
+  have their own default settings)
+
+## v18.0.1 (date: 5.6.2024) WORK IN PROGRESS
+
+- added company name as strategy name (dynamic name handling for user messages)
+- replaced static "Robocorp" references with strategy name
+- renamed some Robocorp functions to more generic Product functions
+
+## v18.0.0 (date: 3.6.2024) WORK IN PROGRESS
+
+- MAJOR breaking change: rcc will now live in two product domains,
+  Robocorp and Sema4.ai
+- feature: initial support for `--sema4ai` strategy selection
+- robot tests to test Sema4.ai support
+
+## v17.29.1 (date: 29.5.2024)
+
+- bugfix: when taking locks, some of those need to be in shared directory,
+  while others should not; code was making too much directories shared
+
+## v17.29.0 (date: 27.5.2024)
+
+- bugfix: removing `VIRTUAL_ENV` when rcc is executing subprocesses
+- adding warning about that environment variable also in diagnostics
+
+## v17.28.4 (date: 26.4.2024)
+
+- bugfix: when there is "rcc point of view" message, it was not showing
+  who was controller, so now controller is visible
+
+## v17.28.3 (date: 26.4.2024)
+
+- bugfix: metrics sending was stating things as error, but they are not
+  critical (so that is now mentioned in message)
+
+## v17.28.2 (date: 24.4.2024)
+
+- bugfix: more places are now using package/conda YAML loading
+
+## v17.28.1 (date: 24.4.2024)
+
+- bugfix: when exporting prebuild environments, include layer catalogs also
+- bugfix: exporting was not adding all environments correctly to .zip file
+
+## v17.28.0 (date: 22.4.2024)
+
+- adding support for `package.yaml` as replacement for `conda.yaml`
+
+## v17.27.0 (date: 17.4.2024)
+
+- when pip dependencies has `--use-feature=truststore` those environments
+  are identified as cacheable
+- removed some robot.yaml file diagnostic checks since those are not valid
+  anymore
+
 ## v17.26.0 (date: 17.4.2024)
 
 - feature: `--no-retry-build` flag for tools to prevent rcc doing retry

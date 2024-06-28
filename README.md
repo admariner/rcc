@@ -10,7 +10,7 @@ Together with [robot.yaml](https://robocorp.com/docs/robot-structure/robot-yaml-
   <img width="400" src="./docs/robocorp_stack.png">
 </p>
 
-RCC is actively maintained by [Robocorp](https://www.robocorp.com/).
+RCC is actively maintained by [Sema4.ai](https://sema4.ai/).
 
 
 ## Why use rcc?

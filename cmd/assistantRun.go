@@ -44,9 +44,9 @@ var assistantRunCmd = &cobra.Command{
 		}
 		common.Timeline("new cloud client created")
 		reason = "START_FAILURE"
-		cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.assistant.run.start", elapser.Elapsed().String())
+		cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.assistant.run.start", elapser.Elapsed().String())
 		defer func() {
-			cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.assistant.run.stop", reason)
+			cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.assistant.run.stop", reason)
 		}()
 		common.Timeline("start assistant run cloud call started")
 		assistant, err := operations.StartAssistantRun(client, account, workspaceId, assistantId)
@@ -90,7 +90,7 @@ var assistantRunCmd = &cobra.Command{
 		}
 
 		defer func() {
-			cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.assistant.run.timeline.uploaded", elapser.Elapsed().String())
+			cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.assistant.run.timeline.uploaded", elapser.Elapsed().String())
 		}()
 		defer func() {
 			if len(assistant.ArtifactURL) == 0 {
@@ -112,9 +112,9 @@ var assistantRunCmd = &cobra.Command{
 			}
 		}()
 
-		cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.assistant.run.timeline.setup", elapser.Elapsed().String())
+		cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.assistant.run.timeline.setup", elapser.Elapsed().String())
 		defer func() {
-			cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.assistant.run.timeline.executed", elapser.Elapsed().String())
+			cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.assistant.run.timeline.executed", elapser.Elapsed().String())
 		}()
 		reason = "ROBOT_FAILURE"
 		operations.SelectExecutionModel(captureRunFlags(true), simple, todo.Commandline(), config, todo, label, false, assistant.Environment)

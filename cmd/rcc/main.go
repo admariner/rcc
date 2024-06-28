@@ -44,7 +44,7 @@ func EnsureUserRegistered() (string, error) {
 	updated, ok := set.Update(cache.Users, strings.ToLower(who.Username))
 	size := len(updated)
 	if size > 1 {
-		warning = fmt.Sprintf("More than one user is using same ROBOCORP_HOME location! Those users are: %s!", strings.Join(updated, ", "))
+		warning = fmt.Sprintf("More than one user is using same %s location! Those users are: %s!", common.Product.HomeVariable(), strings.Join(updated, ", "))
 	}
 	if !ok {
 		return warning, nil
@@ -64,8 +64,8 @@ func TimezoneMetric() error {
 	}
 	cache.Stamps[timezonekey] = common.When + daily
 	zone := time.Now().Format("MST-0700")
-	cloud.BackgroundMetric(common.ControllerIdentity(), timezonekey, zone)
-	cloud.BackgroundMetric(common.ControllerIdentity(), oskey, common.Platform())
+	cloud.InternalBackgroundMetric(common.ControllerIdentity(), timezonekey, zone)
+	cloud.InternalBackgroundMetric(common.ControllerIdentity(), oskey, common.Platform())
 	return cache.Save()
 }
 
@@ -82,7 +82,7 @@ func ExitProtection() {
 			common.WaitLogs()
 			os.Exit(exit.Code)
 		}
-		cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.panic.origin", cmd.Origin())
+		cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.panic.origin", cmd.Origin())
 		cloud.WaitTelemetry()
 		common.WaitLogs()
 		panic(status)
@@ -97,7 +97,7 @@ func startTempRecycling() {
 		return
 	}
 	defer common.Timeline("temp recycling done")
-	pattern := filepath.Join(common.RobocorpTempRoot(), "*", "recycle.now")
+	pattern := filepath.Join(common.ProductTempRoot(), "*", "recycle.now")
 	found, err := filepath.Glob(pattern)
 	if err != nil {
 		common.Debug("Recycling failed, reason: %v", err)
@@ -121,7 +121,7 @@ func markTempForRecycling() {
 	if markedAlready {
 		return
 	}
-	target := common.RobocorpTempName()
+	target := common.ProductTempName()
 	if pathlib.Exists(target) {
 		filename := filepath.Join(target, "recycle.now")
 		pathlib.WriteFile(filename, []byte("True"), 0o644)

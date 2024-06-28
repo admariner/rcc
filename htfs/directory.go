@@ -33,7 +33,7 @@ func init() {
 	killfile[".gitignore"] = true
 
 	if !common.WarrantyVoided() {
-		pathlib.MakeSharedDir(common.HoloLocation())
+		pathlib.MakeSharedDir(common.Product.HoloLocation())
 		pathlib.MakeSharedDir(common.HololibCatalogLocation())
 		pathlib.MakeSharedDir(common.HololibLibraryLocation())
 		pathlib.MakeSharedDir(common.HololibUsageLocation())

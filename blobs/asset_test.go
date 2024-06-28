@@ -27,12 +27,15 @@ func TestCanOtherAssets(t *testing.T) {
 	must_be, wont_be := hamlet.Specifications(t)
 
 	must_be.Panic(func() { blobs.MustAsset("assets/missing.yaml") })
+	must_be.Panic(func() { blobs.MustAsset("assets/settings.yaml") })
+
+	wont_be.Panic(func() { blobs.MustAsset("assets/robocorp_settings.yaml") })
+	wont_be.Panic(func() { blobs.MustAsset("assets/sema4ai_settings.yaml") })
 
 	wont_be.Panic(func() { blobs.MustAsset("assets/micromamba_version.txt") })
 	wont_be.Panic(func() { blobs.MustAsset("assets/externally_managed.txt") })
 
 	wont_be.Panic(func() { blobs.MustAsset("assets/templates.yaml") })
-	wont_be.Panic(func() { blobs.MustAsset("assets/settings.yaml") })
 	wont_be.Panic(func() { blobs.MustAsset("assets/speedtest.yaml") })
 
 	wont_be.Panic(func() { blobs.MustAsset("assets/man/LICENSE.txt") })

@@ -309,7 +309,7 @@ func (it *hololib) queryBlueprint(key string) bool {
 	if !pathlib.IsFile(catalog) {
 		return false
 	}
-	tempdir := filepath.Join(common.RobocorpTemp(), key)
+	tempdir := filepath.Join(common.ProductTemp(), key)
 	shadow, err := NewRoot(tempdir)
 	if err != nil {
 		return false
@@ -323,7 +323,7 @@ func (it *hololib) queryBlueprint(key string) bool {
 	err = shadow.Treetop(CatalogCheck(it, shadow))
 	common.TimelineEnd()
 	if err != nil {
-		cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.holotree.catalog.failure", common.Version)
+		cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.holotree.catalog.failure", common.Version)
 		common.Debug("Catalog check failed, reason: %v", err)
 		return false
 	}
@@ -395,7 +395,7 @@ func (it *hololib) RestoreTo(blueprint []byte, label, controller, space string, 
 	metafile := fmt.Sprintf("%s.meta", targetdir)
 	lockfile := fmt.Sprintf("%s.lck", targetdir)
 	completed := pathlib.LockWaitMessage(lockfile, "Serialized holotree restore [holotree base lock]")
-	locker, err := pathlib.Locker(lockfile, 30000)
+	locker, err := pathlib.Locker(lockfile, 30000, common.SharedHolotree)
 	completed()
 	fail.On(err != nil, "Could not get lock for %s. Quiting.", targetdir)
 	defer locker.Release()
@@ -468,7 +468,7 @@ func New() (MutableLibrary, error) {
 	if err != nil {
 		return nil, err
 	}
-	basedir := common.RobocorpHome()
+	basedir := common.Product.Home()
 	identity := strings.ToLower(fmt.Sprintf("%s %s", runtime.GOOS, runtime.GOARCH))
 	return &hololib{
 		identity:   common.Sipit([]byte(identity)),

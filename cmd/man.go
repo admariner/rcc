@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/robocorp/rcc/blobs"
+	"github.com/robocorp/rcc/common"
 	"github.com/robocorp/rcc/pretty"
 	"github.com/spf13/cobra"
 )
@@ -101,8 +102,10 @@ func init() {
 		Run:     makeShowDoc("vocabulary documentation", "docs/vocabulary.md"),
 	})
 
-	manCmd.AddCommand(tutorial)
-	rootCmd.AddCommand(tutorial)
+	if common.Product.IsLegacy() {
+		manCmd.AddCommand(tutorial)
+		rootCmd.AddCommand(tutorial)
+	}
 }
 
 func makeShowDoc(label, asset string) cobraCommand {

@@ -102,7 +102,7 @@ func FreezeEnvironmentListing(label string, config robot.Robot) {
 		common.Log("No dependencies found at %q", goldenfile)
 		return
 	}
-	env, err := conda.ReadCondaYaml(config.CondaConfigFile())
+	env, err := conda.ReadPackageCondaYaml(config.CondaConfigFile())
 	if err != nil {
 		common.Log("Could not read %q, reason: %v", config.CondaConfigFile(), err)
 		return
@@ -180,10 +180,10 @@ func LoadTaskWithEnvironment(packfile, theTask string, force bool) (bool, robot.
 	journal.ForRun(filepath.Join(config.ArtifactDirectory(), "journal.run"))
 	cache, err := SummonCache()
 	if err == nil && len(cache.Userset()) > 1 {
-		pretty.Note("There seems to be multiple users sharing ROBOCORP_HOME, which might cause problems.")
+		pretty.Note("There seems to be multiple users sharing %s, which might cause problems.", common.Product.HomeVariable())
 		pretty.Note("These are the users: %s.", cache.Userset())
-		pretty.Highlight("To correct this problem, make sure that there is only one user per ROBOCORP_HOME.")
-		common.RunJournal("sharing", fmt.Sprintf("name=%s from=%s users=%s", theTask, packfile, cache.Userset()), "multiple users shareing ROBOCORP_HOME")
+		pretty.Highlight("To correct this problem, make sure that there is only one user per %s.", common.Product.HomeVariable())
+		common.RunJournal("sharing", fmt.Sprintf("name=%s from=%s users=%s", theTask, packfile, cache.Userset()), fmt.Sprintf("multiple users shareing %s", common.Product.HomeVariable()))
 	}
 
 	common.RunJournal("start task", fmt.Sprintf("name=%s from=%s", theTask, packfile), "at task environment setup")
@@ -372,7 +372,7 @@ func ExecuteTask(flags *RunFlags, template []string, config robot.Robot, todo ro
 		}
 		if exitcode != 0 {
 			details := fmt.Sprintf("%s_%d_%08x", common.Platform(), exitcode, uint32(exitcode))
-			cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.cli.run.failure", details)
+			cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.cli.run.failure", details)
 		}
 	})
 	pretty.RccPointOfView(actualRun, err)

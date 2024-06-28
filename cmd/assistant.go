@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+
+	"github.com/robocorp/rcc/common"
 	"github.com/spf13/cobra"
 )
 
@@ -8,12 +11,14 @@ var assistantCmd = &cobra.Command{
 	Use:     "assistant",
 	Aliases: []string{"assist", "a"},
 	Short:   "Group of commands related to `robot assistant`.",
-	Long: `This set of commands relate to Robocorp Robot Assistant related tasks.
-They are either local, or in relation to Robocorp Control Room and tooling.`,
+	Long: fmt.Sprintf(`This set of commands relate to %s Robot Assistant related tasks.
+They are either local, or in relation to %s Control Room and tooling.`, common.Product.Name(), common.Product.Name()),
 }
 
 func init() {
-	rootCmd.AddCommand(assistantCmd)
+	if common.Product.IsLegacy() {
+		rootCmd.AddCommand(assistantCmd)
 
-	assistantCmd.PersistentFlags().StringVarP(&accountName, "account", "", "", "Account used for Robocorp Control Room operations.")
+		assistantCmd.PersistentFlags().StringVarP(&accountName, "account", "", "", fmt.Sprintf("Account used for %s Control Room operations.", common.Product.Name()))
+	}
 }

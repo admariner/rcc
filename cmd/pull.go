@@ -16,8 +16,8 @@ import (
 
 var pullCmd = &cobra.Command{
 	Use:   "pull",
-	Short: "Pull a robot from Robocorp Control Room and unwrap it into local directory.",
-	Long:  "Pull a robot from Robocorp Control Room and unwrap it into local directory.",
+	Short: fmt.Sprintf("Pull a robot from %s Control Room and unwrap it into local directory.", common.Product.Name()),
+	Long:  fmt.Sprintf("Pull a robot from %s Control Room and unwrap it into local directory.", common.Product.Name()),
 	Run: func(cmd *cobra.Command, args []string) {
 		if common.DebugFlag() {
 			defer common.Stopwatch("Pull lasted").Report()

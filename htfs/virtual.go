@@ -22,7 +22,7 @@ type virtual struct {
 
 func Virtual() MutableLibrary {
 	return &virtual{
-		identity: common.Sipit([]byte(common.RobocorpHome())),
+		identity: common.Sipit([]byte(common.Product.Home())),
 	}
 }
 
@@ -103,7 +103,7 @@ func (it *virtual) RestoreTo(blueprint []byte, label, controller, space string, 
 	metafile := fmt.Sprintf("%s.meta", targetdir)
 	lockfile := fmt.Sprintf("%s.lck", targetdir)
 	completed := pathlib.LockWaitMessage(lockfile, "Serialized holotree restore [holotree virtual lock]")
-	locker, err := pathlib.Locker(lockfile, 30000)
+	locker, err := pathlib.Locker(lockfile, 30000, common.SharedHolotree)
 	completed()
 	fail.On(err != nil, "Could not get lock for %s. Quiting.", targetdir)
 	defer locker.Release()

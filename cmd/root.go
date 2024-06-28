@@ -12,19 +12,23 @@ import (
 	"github.com/robocorp/rcc/conda"
 	"github.com/robocorp/rcc/pathlib"
 	"github.com/robocorp/rcc/pretty"
+	"github.com/robocorp/rcc/set"
 	"github.com/robocorp/rcc/xviper"
 
 	"github.com/spf13/cobra"
 )
 
 var (
-	anythingIgnore string
-	profilefile    string
-	profiling      *os.File
-	versionFlag    bool
-	silentFlag     bool
-	debugFlag      bool
-	traceFlag      bool
+	anythingIgnore  string
+	profilefile     string
+	profiling       *os.File
+	versionFlag     bool
+	silentFlag      bool
+	debugFlag       bool
+	traceFlag       bool
+	productFakeFlag bool // this is handled in common init
+
+	excludedCommands = []string{"completion"}
 )
 
 func toplevelCommands(parent *cobra.Command) {
@@ -45,10 +49,13 @@ func commandTree(level int, prefix string, parent *cobra.Command) {
 	if level == 1 && len(parent.Commands()) == 0 {
 		return
 	}
+	name := strings.Split(parent.Use, " ")
+	if set.Member(excludedCommands, name[0]) {
+		return
+	}
 	if level == 1 {
 		common.Log("%s", strings.TrimSpace(prefix))
 	}
-	name := strings.Split(parent.Use, " ")
 	label := fmt.Sprintf("%s%s", prefix, name[0])
 	common.Log("%-16s  %s", label, parent.Short)
 	indent := prefix + "| "
@@ -59,10 +66,10 @@ func commandTree(level int, prefix string, parent *cobra.Command) {
 
 var rootCmd = &cobra.Command{
 	Use:   "rcc",
-	Short: "rcc is environment manager for Robocorp Automation Stack",
-	Long: `rcc provides support for creating and managing tasks,
-communicating with Robocorp Control Room, and managing virtual environments where
-tasks can be developed, debugged, and run.`,
+	Short: fmt.Sprintf("rcc is environment manager for %s Automation Stack", common.Product.Name()),
+	Long: fmt.Sprintf(`rcc provides support for creating and managing tasks,
+communicating with %s Control Room, and managing virtual environments where
+tasks can be developed, debugged, and run.`, common.Product.Name()),
 	Run: func(cmd *cobra.Command, args []string) {
 		if versionFlag {
 			common.Stdout("%s\n", common.Version)
@@ -108,9 +115,11 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&profilefile, "pprof", "", "Filename to save profiling information.")
 	rootCmd.PersistentFlags().StringVar(&common.ControllerType, "controller", "user", "internal, DO NOT USE (unless you know what you are doing)")
 	rootCmd.PersistentFlags().StringVar(&common.SemanticTag, "tag", "transient", "semantic reason/context, why are you invoking rcc")
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $ROBOCORP_HOME/rcc.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", fmt.Sprintf("config file (default is $%s/rcc.yaml)", common.Product.HomeVariable()))
 	rootCmd.PersistentFlags().StringVar(&anythingIgnore, "anything", "", "freeform string value that can be set without any effect, for example CLI versioning/reference")
 
+	rootCmd.PersistentFlags().BoolVarP(&productFakeFlag, "sema4ai", "", false, "Select Sema4.ai toolset strategy.")
+	rootCmd.PersistentFlags().BoolVarP(&productFakeFlag, "robocorp", "", false, "Select Robocorp toolset strategy.")
 	rootCmd.PersistentFlags().BoolVarP(&common.NoBuild, "no-build", "", false, "never allow building new environments, only use what exists already in hololib (also RCC_NO_BUILD=1)")
 	rootCmd.PersistentFlags().BoolVarP(&common.NoRetryBuild, "no-retry-build", "", false, "no retry in case of first environment build fails, just report error immediately")
 	rootCmd.PersistentFlags().BoolVarP(&silentFlag, "silent", "", false, "be less verbose on output (also RCC_VERBOSITY=silent)")
@@ -145,7 +154,7 @@ func initConfig() {
 	if cfgFile != "" {
 		xviper.SetConfigFile(cfgFile)
 	} else {
-		xviper.SetConfigFile(filepath.Join(common.RobocorpHome(), "rcc.yaml"))
+		xviper.SetConfigFile(filepath.Join(common.Product.Home(), "rcc.yaml"))
 	}
 
 	common.DefineVerbosity(silentFlag, debugFlag, traceFlag)

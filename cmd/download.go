@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/robocorp/rcc/cloud"
 	"github.com/robocorp/rcc/common"
 	"github.com/robocorp/rcc/operations"
@@ -11,8 +13,8 @@ import (
 
 var downloadCmd = &cobra.Command{
 	Use:   "download",
-	Short: "Fetch an existing robot from Robocorp Control Room.",
-	Long:  "Fetch an existing robot from Robocorp Control Room.",
+	Short: fmt.Sprintf("Fetch an existing robot from %s Control Room.", common.Product.Name()),
+	Long:  fmt.Sprintf("Fetch an existing robot from %s Control Room.", common.Product.Name()),
 	Run: func(cmd *cobra.Command, args []string) {
 		if common.DebugFlag() {
 			defer common.Stopwatch("Download lasted").Report()

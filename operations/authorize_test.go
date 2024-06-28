@@ -58,11 +58,11 @@ func TestCanCreateBearerToken(t *testing.T) {
 	must_be.Equal(operations.BearerToken("barbie"), "Bearer barbie")
 }
 
-func TestCanCreateRobocorpCloudHmac(t *testing.T) {
+func TestCanCreateProductCloudHmac(t *testing.T) {
 	must_be, _ := hamlet.Specifications(t)
 
-	must_be.Equal(operations.RobocorpCloudHmac("11", "token"), "robocloud-hmac 11 token")
-	must_be.Equal(operations.RobocorpCloudHmac("1234", "abcd"), "robocloud-hmac 1234 abcd")
+	must_be.Equal(operations.ProductCloudHmac("11", "token"), "robocloud-hmac 11 token")
+	must_be.Equal(operations.ProductCloudHmac("1234", "abcd"), "robocloud-hmac 1234 abcd")
 }
 
 func TestCanCreateNewClaims(t *testing.T) {

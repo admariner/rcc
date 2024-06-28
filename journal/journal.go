@@ -65,7 +65,7 @@ func (it *journal) Post(event, detail, commentForm string, fields ...interface{}
 	}
 	blob, err := json.Marshal(message)
 	fail.On(err != nil, "Could not serialize event: %v -> %v", event, err)
-	return appendJournal(it.filename, blob)
+	return AppendJournal(it.filename, blob)
 }
 
 func Unify(value string) string {
@@ -83,10 +83,10 @@ func Post(event, detail, commentForm string, fields ...interface{}) (err error) 
 	}
 	blob, err := json.Marshal(message)
 	fail.On(err != nil, "Could not serialize event: %v -> %v", event, err)
-	return appendJournal(common.EventJournal(), blob)
+	return AppendJournal(common.EventJournal(), blob)
 }
 
-func appendJournal(journalname string, blob []byte) (err error) {
+func AppendJournal(journalname string, blob []byte) (err error) {
 	defer fail.Around(&err)
 	if common.WarrantyVoided() {
 		return nil
@@ -94,9 +94,7 @@ func appendJournal(journalname string, blob []byte) (err error) {
 	handle, err := os.OpenFile(journalname, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o640)
 	fail.On(err != nil, "Failed to open event journal %v -> %v", journalname, err)
 	defer handle.Close()
-	_, err = handle.Write(blob)
-	fail.On(err != nil, "Failed to write event journal %v -> %v", journalname, err)
-	_, err = handle.Write([]byte{'\n'})
+	_, err = handle.Write(append(blob, '\n'))
 	fail.On(err != nil, "Failed to write event journal %v -> %v", journalname, err)
 	return handle.Sync()
 }

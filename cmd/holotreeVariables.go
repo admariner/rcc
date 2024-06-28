@@ -75,7 +75,7 @@ func holotreeExpandEnvironment(userFiles []string, packfile, environment, worksp
 	config, holotreeBlueprint, err := htfs.ComposeFinalBlueprint(userFiles, packfile)
 	pretty.Guard(err == nil, 5, "%s", err)
 
-	condafile := filepath.Join(common.RobocorpTemp(), common.BlueprintHash(holotreeBlueprint))
+	condafile := filepath.Join(common.ProductTemp(), common.BlueprintHash(holotreeBlueprint))
 	err = pathlib.WriteFile(condafile, holotreeBlueprint, 0o644)
 	pretty.Guard(err == nil, 6, "%s", err)
 

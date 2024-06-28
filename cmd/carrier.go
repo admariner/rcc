@@ -63,7 +63,7 @@ func runCarrier() error {
 	targetRobot := robot.DetectConfigurationName(workarea)
 	simple, config, todo, label := operations.LoadTaskWithEnvironment(targetRobot, runTask, forceFlag)
 	defer common.Log("Moving outputs to %v directory.", testrunDir)
-	cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.cli.testrun", common.Version)
+	cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.cli.testrun", common.Version)
 	operations.SelectExecutionModel(captureRunFlags(false), simple, todo.Commandline(), config, todo, label, false, nil)
 	return nil
 }

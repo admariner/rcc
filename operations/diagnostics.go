@@ -67,7 +67,7 @@ func runDiagnostics(quick bool) *common.DiagnosticStatus {
 	result.Details["rcc.bin"] = common.BinRcc()
 	result.Details["micromamba"] = conda.MicromambaVersion()
 	result.Details["micromamba.bin"] = conda.BinMicromamba()
-	result.Details["ROBOCORP_HOME"] = common.RobocorpHome()
+	result.Details[common.Product.HomeVariable()] = common.Product.Home()
 	result.Details["ROBOCORP_OVERRIDE_SYSTEM_REQUIREMENTS"] = fmt.Sprintf("%v", common.OverrideSystemRequirements())
 	result.Details["RCC_VERBOSE_ENVIRONMENT_BUILDING"] = fmt.Sprintf("%v", common.VerboseEnvironmentBuilding())
 	result.Details["RCC_REMOTE_ORIGIN"] = fmt.Sprintf("%v", common.RccRemoteOrigin())
@@ -95,7 +95,7 @@ func runDiagnostics(quick bool) *common.DiagnosticStatus {
 	result.Details["config-ssl-verify"] = fmt.Sprintf("%v", settings.Global.VerifySsl())
 	result.Details["config-ssl-no-revoke"] = fmt.Sprintf("%v", settings.Global.NoRevocation())
 	result.Details["config-legacy-renegotiation-allowed"] = fmt.Sprintf("%v", settings.Global.LegacyRenegotiation())
-	result.Details["os-holo-location"] = common.HoloLocation()
+	result.Details["os-holo-location"] = common.Product.HoloLocation()
 	result.Details["hololib-location"] = common.HololibLocation()
 	result.Details["hololib-catalog-location"] = common.HololibCatalogLocation()
 	result.Details["hololib-library-location"] = common.HololibLibraryLocation()
@@ -128,13 +128,13 @@ func runDiagnostics(quick bool) *common.DiagnosticStatus {
 
 	// checks
 	if common.SharedHolotree {
-		result.Checks = append(result.Checks, verifySharedDirectory(common.HoloLocation()))
+		result.Checks = append(result.Checks, verifySharedDirectory(common.Product.HoloLocation()))
 		result.Checks = append(result.Checks, verifySharedDirectory(common.HololibLocation()))
 		result.Checks = append(result.Checks, verifySharedDirectory(common.HololibCatalogLocation()))
 		result.Checks = append(result.Checks, verifySharedDirectory(common.HololibLibraryLocation()))
 	}
-	result.Checks = append(result.Checks, robocorpHomeCheck())
-	check := robocorpHomeMemberCheck()
+	result.Checks = append(result.Checks, productHomeCheck())
+	check := productHomeMemberCheck()
 	if check != nil {
 		result.Checks = append(result.Checks, check)
 	}
@@ -155,6 +155,7 @@ func runDiagnostics(quick bool) *common.DiagnosticStatus {
 	result.Checks = append(result.Checks, anyPathCheck("SSL_CERT_DIR"))
 	result.Checks = append(result.Checks, anyPathCheck("SSL_CERT_FILE"))
 	result.Checks = append(result.Checks, anyPathCheck("WDM_SSL_VERIFY"))
+	result.Checks = append(result.Checks, anyPathCheck("VIRTUAL_ENV"))
 
 	result.Checks = append(result.Checks, anyEnvVarCheck("RCC_NO_TEMP_MANAGEMENT"))
 	result.Checks = append(result.Checks, anyEnvVarCheck("RCC_NO_PYC_MANAGEMENT"))
@@ -201,7 +202,7 @@ func lockfiles() map[string]string {
 	result["lock-config"] = xviper.Lockfile()
 	result["lock-cache"] = cacheLockFile()
 	result["lock-holotree"] = common.HolotreeLock()
-	result["lock-robocorp"] = common.RobocorpLock()
+	result["lock-robocorp"] = common.ProductLock()
 	result["lock-userlock"] = htfs.UserHolotreeLockfile()
 	return result
 }
@@ -371,7 +372,7 @@ func workdirCheck() *common.DiagnosticCheck {
 	if err != nil {
 		return nil
 	}
-	inside, err := common.IsInsideRobocorpHome(workarea)
+	inside, err := common.IsInsideProductHome(workarea)
 	if err != nil {
 		return nil
 	}
@@ -380,14 +381,14 @@ func workdirCheck() *common.DiagnosticCheck {
 			Type:     "RPA",
 			Category: common.CategoryPathCheck,
 			Status:   statusWarning,
-			Message:  fmt.Sprintf("Working directory %q is inside ROBOCORP_HOME (%s).", workarea, common.RobocorpHome()),
+			Message:  fmt.Sprintf("Working directory %q is inside %s (%s).", workarea, common.Product.HomeVariable(), common.Product.Home()),
 			Link:     supportGeneralUrl,
 		}
 	}
 	return nil
 }
 
-func robocorpHomeMemberCheck() *common.DiagnosticCheck {
+func productHomeMemberCheck() *common.DiagnosticCheck {
 	supportGeneralUrl := settings.Global.DocsLink("troubleshooting")
 	cache, err := SummonCache()
 	if err != nil || len(cache.Users) < 2 {
@@ -396,42 +397,42 @@ func robocorpHomeMemberCheck() *common.DiagnosticCheck {
 	members := strings.Join(cache.Users, ", ")
 	return &common.DiagnosticCheck{
 		Type:     "RPA",
-		Category: common.CategoryRobocorpHomeMembers,
+		Category: common.CategoryProductHomeMembers,
 		Status:   statusWarning,
-		Message:  fmt.Sprintf("More than one user is sharing ROBOCORP_HOME (%s). Those users are: %s.", common.RobocorpHome(), members),
+		Message:  fmt.Sprintf("More than one user is sharing %s (%s). Those users are: %s.", common.Product.HomeVariable(), common.Product.Home(), members),
 		Link:     supportGeneralUrl,
 	}
 }
 
-func robocorpHomeCheck() *common.DiagnosticCheck {
+func productHomeCheck() *common.DiagnosticCheck {
 	supportGeneralUrl := settings.Global.DocsLink("troubleshooting")
-	if !conda.ValidLocation(common.RobocorpHome()) {
+	if !conda.ValidLocation(common.Product.Home()) {
 		return &common.DiagnosticCheck{
 			Type:     "RPA",
-			Category: common.CategoryRobocorpHome,
+			Category: common.CategoryProductHome,
 			Status:   statusFatal,
-			Message:  fmt.Sprintf("ROBOCORP_HOME (%s) contains characters that makes RPA fail.", common.RobocorpHome()),
+			Message:  fmt.Sprintf("%s (%s) contains characters that makes RPA fail.", common.Product.HomeVariable(), common.Product.Home()),
 			Link:     supportGeneralUrl,
 		}
 	}
 	userhome, err := os.UserHomeDir()
 	if err == nil {
-		inside, err := common.IsInsideRobocorpHome(userhome)
+		inside, err := common.IsInsideProductHome(userhome)
 		if err == nil && inside {
 			return &common.DiagnosticCheck{
 				Type:     "RPA",
-				Category: common.CategoryRobocorpHome,
+				Category: common.CategoryProductHome,
 				Status:   statusWarning,
-				Message:  fmt.Sprintf("User home directory %q is inside ROBOCORP_HOME (%s).", userhome, common.RobocorpHome()),
+				Message:  fmt.Sprintf("User home directory %q is inside %s (%s).", userhome, common.Product.HomeVariable(), common.Product.Home()),
 				Link:     supportGeneralUrl,
 			}
 		}
 	}
 	return &common.DiagnosticCheck{
 		Type:     "RPA",
-		Category: common.CategoryRobocorpHome,
+		Category: common.CategoryProductHome,
 		Status:   statusOk,
-		Message:  fmt.Sprintf("ROBOCORP_HOME (%s) is good enough.", common.RobocorpHome()),
+		Message:  fmt.Sprintf("%s (%s) is good enough.", common.Product.HomeVariable(), common.Product.Home()),
 		Link:     supportGeneralUrl,
 	}
 }

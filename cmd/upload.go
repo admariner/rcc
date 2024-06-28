@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/robocorp/rcc/cloud"
 	"github.com/robocorp/rcc/common"
 	"github.com/robocorp/rcc/operations"
@@ -11,8 +13,8 @@ import (
 
 var uploadCmd = &cobra.Command{
 	Use:   "upload",
-	Short: "Push an existing robot to Robocorp Control Room.",
-	Long:  "Push an existing robot to Robocorp Control Room.",
+	Short: fmt.Sprintf("Push an existing robot to %s Control Room.", common.Product.Name()),
+	Long:  fmt.Sprintf("Push an existing robot to %s Control Room.", common.Product.Name()),
 	Run: func(cmd *cobra.Command, args []string) {
 		if common.DebugFlag() {
 			defer common.Stopwatch("Upload lasted").Report()

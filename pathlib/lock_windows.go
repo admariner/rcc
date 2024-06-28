@@ -28,7 +28,7 @@ type filehandle interface {
 	Fd() uintptr
 }
 
-func Locker(filename string, trycount int) (Releaser, error) {
+func Locker(filename string, trycount int, sharedLocation bool) (Releaser, error) {
 	if common.WarrantyVoided() || Lockless {
 		return Fake(), nil
 	}
@@ -40,9 +40,16 @@ func Locker(filename string, trycount int) (Releaser, error) {
 		}()
 	}
 	common.Trace("LOCKER: Want lock on: %v", filename)
-	_, err = EnsureSharedParentDirectory(filename)
-	if err != nil {
-		return nil, err
+	if sharedLocation {
+		_, err = EnsureSharedParentDirectory(filename)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		_, err := EnsureParentDirectory(filename)
+		if err != nil {
+			return nil, err
+		}
 	}
 	for {
 		trycount -= 1

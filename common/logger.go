@@ -75,6 +75,12 @@ func Error(context string, err error) {
 	}
 }
 
+func Uncritical(context string, err error) {
+	if err != nil {
+		Log("Warning [%s; not critical]: %v", context, err)
+	}
+}
+
 func Log(format string, details ...interface{}) {
 	if !Silent() {
 		prefix := ""

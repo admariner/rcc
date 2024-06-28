@@ -6,6 +6,7 @@ import (
 	"os"
 	"text/tabwriter"
 
+	"github.com/robocorp/rcc/common"
 	"github.com/robocorp/rcc/journal"
 	"github.com/robocorp/rcc/pretty"
 	"github.com/spf13/cobra"
@@ -24,8 +25,8 @@ func humaneEventListing(events []journal.Event) {
 
 var eventsCmd = &cobra.Command{
 	Use:   "events",
-	Short: "Show events from event journal (ROBOCORP_HOME/event.log).",
-	Long:  "Show events from event journal (ROBOCORP_HOME/event.log).",
+	Short: fmt.Sprintf("Show events from event journal (%s/event.log).", common.Product.HomeVariable()),
+	Long:  fmt.Sprintf("Show events from event journal (%s/event.log).", common.Product.HomeVariable()),
 	Run: func(cmd *cobra.Command, args []string) {
 		events, err := journal.Events()
 		pretty.Guard(err == nil, 2, "Error while loading events: %v", err)

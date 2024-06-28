@@ -108,7 +108,7 @@ func RunAssistantClaims(seconds int, workspace string) *Claims {
 func RunRobotClaims(seconds int, workspace string) *Claims {
 	result := NewClaims("RunRobot", fmt.Sprintf(WorkspaceApi, workspace), seconds)
 	result.CapabilitySet = "run/robot"
-	cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.capabilityset.runrobot", common.Version)
+	cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.capabilityset.runrobot", common.Version)
 	return result
 }
 
@@ -140,7 +140,7 @@ func WorkspaceToken(token string) string {
 	return fmt.Sprintf("RC_WST %s", token)
 }
 
-func RobocorpCloudHmac(identifier, token string) string {
+func ProductCloudHmac(identifier, token string) string {
 	return fmt.Sprintf("robocloud-hmac %s %s", identifier, token)
 }
 
@@ -196,7 +196,7 @@ func AuthorizeCommand(client cloud.Client, account *account, claims *Claims, per
 	signed := HmacSignature(claims, account.Secret, nonce, bodyHash)
 	request := client.NewRequest(claims.Url)
 	request.Headers[contentType] = applicationJson
-	request.Headers[authorization] = RobocorpCloudHmac(account.Identifier, signed)
+	request.Headers[authorization] = ProductCloudHmac(account.Identifier, signed)
 	request.Headers[nonceHeader] = nonce
 	request.Headers[contentLength] = fmt.Sprintf("%d", size)
 	request.Body = strings.NewReader(body)
@@ -229,7 +229,7 @@ func DeleteAccount(client cloud.Client, account *account) error {
 	signed := HmacSignature(claims, account.Secret, nonce, bodyHash)
 	request := client.NewRequest(claims.Url)
 	request.Headers[contentType] = applicationJson
-	request.Headers[authorization] = RobocorpCloudHmac(account.Identifier, signed)
+	request.Headers[authorization] = ProductCloudHmac(account.Identifier, signed)
 	request.Headers[nonceHeader] = nonce
 	response := client.Delete(request)
 	if response.Status < 200 || 299 < response.Status {
@@ -246,7 +246,7 @@ func UserinfoCommand(client cloud.Client, account *account) (*UserInfo, error) {
 	signed := HmacSignature(claims, account.Secret, nonce, bodyHash)
 	request := client.NewRequest(claims.Url)
 	request.Headers[contentType] = applicationJson
-	request.Headers[authorization] = RobocorpCloudHmac(account.Identifier, signed)
+	request.Headers[authorization] = ProductCloudHmac(account.Identifier, signed)
 	request.Headers[nonceHeader] = nonce
 	response := client.Get(request)
 	if response.Status != 200 {

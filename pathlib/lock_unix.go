@@ -10,7 +10,7 @@ import (
 	"github.com/robocorp/rcc/common"
 )
 
-func Locker(filename string, trycount int) (Releaser, error) {
+func Locker(filename string, trycount int, sharedLocation bool) (Releaser, error) {
 	if common.WarrantyVoided() || Lockless {
 		return Fake(), nil
 	}
@@ -18,9 +18,16 @@ func Locker(filename string, trycount int) (Releaser, error) {
 		defer common.Stopwatch("LOCKER: Got lock on %v in", filename).Report()
 	}
 	common.Trace("LOCKER: Want lock on: %v", filename)
-	_, err := EnsureSharedParentDirectory(filename)
-	if err != nil {
-		return nil, err
+	if sharedLocation {
+		_, err := EnsureSharedParentDirectory(filename)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		_, err := EnsureParentDirectory(filename)
+		if err != nil {
+			return nil, err
+		}
 	}
 	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o666)
 	if err != nil {

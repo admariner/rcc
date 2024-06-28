@@ -42,7 +42,7 @@ func CondaEnvironment() []string {
 	env := os.Environ()
 	env = append(env, fmt.Sprintf("MAMBA_ROOT_PREFIX=%s", common.MambaRootPrefix()))
 	if !common.DisableTempManagement() {
-		tempFolder := common.RobocorpTemp()
+		tempFolder := common.ProductTemp()
 		env = append(env, fmt.Sprintf("TEMP=%s", tempFolder))
 		env = append(env, fmt.Sprintf("TMP=%s", tempFolder))
 	}
@@ -74,7 +74,7 @@ func IsWindows() bool {
 }
 
 func HasLongPathSupport() bool {
-	baseline := []string{common.RobocorpHome(), fmt.Sprintf("stump%x", os.Getpid())}
+	baseline := []string{common.Product.Home(), fmt.Sprintf("stump%x", os.Getpid())}
 	stumpath := filepath.Join(baseline...)
 	defer os.RemoveAll(stumpath)
 

@@ -27,6 +27,8 @@ var wizardCreateCmd = &cobra.Command{
 }
 
 func init() {
-	interactiveCmd.AddCommand(wizardCreateCmd)
-	rootCmd.AddCommand(wizardCreateCmd)
+	if common.Product.IsLegacy() {
+		interactiveCmd.AddCommand(wizardCreateCmd)
+		rootCmd.AddCommand(wizardCreateCmd)
+	}
 }

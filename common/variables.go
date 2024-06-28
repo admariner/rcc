@@ -25,7 +25,6 @@ const (
 )
 
 const (
-	ROBOCORP_HOME_VARIABLE                = `ROBOCORP_HOME`
 	RCC_REMOTE_ORIGIN                     = `RCC_REMOTE_ORIGIN`
 	RCC_REMOTE_AUTHORIZATION              = `RCC_REMOTE_AUTHORIZATION`
 	RCC_NO_TEMP_MANAGEMENT                = `RCC_NO_TEMP_MANAGEMENT`
@@ -60,12 +59,12 @@ var (
 	HolotreeSpace           string
 	EnvironmentHash         string
 	SemanticTag             string
-	ForcedRobocorpHome      string
 	When                    int64
 	Clock                   *stopwatch
 	randomIdentifier        string
 	verbosity               Verbosity
 	LogHides                []string
+	Product                 ProductStrategy
 )
 
 func init() {
@@ -82,6 +81,19 @@ func init() {
 	args := set.Set(lowargs)
 	WarrantyVoidedFlag = set.Member(args, "--warranty-voided")
 	BundledFlag = set.Member(args, "--bundled")
+	sema4ai := set.Member(args, "--sema4ai")
+	robocorp := set.Member(args, "--robocorp")
+	switch {
+	case sema4ai && robocorp:
+		fmt.Fprintln(os.Stderr, "Fatal: rcc cannot be on both --robocorp and --sema4ai product modes at same time! Just use one of those, not both!")
+		os.Exit(99)
+	case sema4ai:
+		Product = Sema4Mode()
+	case robocorp:
+		Product = LegacyMode()
+	default:
+		Product = LegacyMode()
+	}
 	NoTempManagement = set.Member(args, "--no-temp-management")
 	NoPycManagement = set.Member(args, "--no-pyc-management")
 	if set.Member(args, "--debug") {
@@ -112,17 +124,6 @@ func RandomIdentifier() string {
 	return randomIdentifier
 }
 
-func RobocorpHome() string {
-	if len(ForcedRobocorpHome) > 0 {
-		return ExpandPath(ForcedRobocorpHome)
-	}
-	home := os.Getenv(ROBOCORP_HOME_VARIABLE)
-	if len(home) > 0 {
-		return ExpandPath(home)
-	}
-	return ExpandPath(defaultRobocorpLocation)
-}
-
 func DisableTempManagement() bool {
 	return NoTempManagement || len(os.Getenv(RCC_NO_TEMP_MANAGEMENT)) > 0
 }
@@ -140,8 +141,8 @@ func RccRemoteAuthorization() (string, bool) {
 	return result, len(result) > 0
 }
 
-func RobocorpLock() string {
-	return filepath.Join(RobocorpHome(), "robocorp.lck")
+func ProductLock() string {
+	return filepath.Join(Product.Home(), "robocorp.lck")
 }
 
 func IsBundled() bool {
@@ -177,7 +178,7 @@ func BinRcc() string {
 }
 
 func OldEventJournal() string {
-	return filepath.Join(RobocorpHome(), "event.log")
+	return filepath.Join(Product.Home(), "event.log")
 }
 
 func EventJournal() string {
@@ -185,23 +186,23 @@ func EventJournal() string {
 }
 
 func JournalLocation() string {
-	return filepath.Join(RobocorpHome(), "journals")
+	return filepath.Join(Product.Home(), "journals")
 }
 
 func TemplateLocation() string {
-	return filepath.Join(RobocorpHome(), "templates")
+	return filepath.Join(Product.Home(), "templates")
 }
 
-func RobocorpTempRoot() string {
-	return filepath.Join(RobocorpHome(), "temp")
+func ProductTempRoot() string {
+	return filepath.Join(Product.Home(), "temp")
 }
 
-func RobocorpTempName() string {
-	return filepath.Join(RobocorpTempRoot(), RandomIdentifier())
+func ProductTempName() string {
+	return filepath.Join(ProductTempRoot(), RandomIdentifier())
 }
 
-func RobocorpTemp() string {
-	tempLocation := RobocorpTempName()
+func ProductTemp() string {
+	tempLocation := ProductTempName()
 	fullpath, err := filepath.Abs(tempLocation)
 	if err != nil {
 		fullpath = tempLocation
@@ -214,23 +215,19 @@ func RobocorpTemp() string {
 }
 
 func BinLocation() string {
-	return filepath.Join(RobocorpHome(), "bin")
+	return filepath.Join(Product.Home(), "bin")
 }
 
 func MicromambaLocation() string {
-	return filepath.Join(RobocorpHome(), "micromamba")
+	return filepath.Join(Product.Home(), "micromamba")
 }
 
 func SharedMarkerLocation() string {
-	return filepath.Join(HoloLocation(), "shared.yes")
-}
-
-func HoloLocation() string {
-	return ExpandPath(defaultHoloLocation)
+	return filepath.Join(Product.HoloLocation(), "shared.yes")
 }
 
 func HoloInitLocation() string {
-	return filepath.Join(HoloLocation(), "lib", "catalog", "init")
+	return filepath.Join(Product.HoloLocation(), "lib", "catalog", "init")
 }
 
 func HoloInitUserFile() string {
@@ -243,16 +240,16 @@ func HoloInitCommonFile() string {
 
 func HolotreeLocation() string {
 	if SharedHolotree {
-		return HoloLocation()
+		return Product.HoloLocation()
 	}
-	return filepath.Join(RobocorpHome(), "holotree")
+	return filepath.Join(Product.Home(), "holotree")
 }
 
 func HololibLocation() string {
 	if SharedHolotree {
-		return filepath.Join(HoloLocation(), "lib")
+		return filepath.Join(Product.HoloLocation(), "lib")
 	}
-	return filepath.Join(RobocorpHome(), "hololib")
+	return filepath.Join(Product.Home(), "hololib")
 }
 
 func HololibPids() string {
@@ -285,9 +282,9 @@ func BadHololibSitePackagesLocation() string {
 
 func BadHololibScriptsLocation() string {
 	if SharedHolotree {
-		return filepath.Join(HoloLocation(), "Scripts")
+		return filepath.Join(Product.HoloLocation(), "Scripts")
 	}
-	return filepath.Join(RobocorpHome(), "Scripts")
+	return filepath.Join(Product.Home(), "Scripts")
 }
 
 func UsesHolotree() bool {
@@ -295,23 +292,23 @@ func UsesHolotree() bool {
 }
 
 func UvCache() string {
-	return filepath.Join(RobocorpHome(), "uvcache")
+	return filepath.Join(Product.Home(), "uvcache")
 }
 
 func PipCache() string {
-	return filepath.Join(RobocorpHome(), "pipcache")
+	return filepath.Join(Product.Home(), "pipcache")
 }
 
 func WheelCache() string {
-	return filepath.Join(RobocorpHome(), "wheels")
+	return filepath.Join(Product.Home(), "wheels")
 }
 
 func RobotCache() string {
-	return filepath.Join(RobocorpHome(), "robots")
+	return filepath.Join(Product.Home(), "robots")
 }
 
 func MambaRootPrefix() string {
-	return RobocorpHome()
+	return Product.Home()
 }
 
 func MambaPackages() string {
@@ -319,23 +316,19 @@ func MambaPackages() string {
 }
 
 func PipRcFile() string {
-	return ExpandPath(filepath.Join(RobocorpHome(), "piprc"))
+	return ExpandPath(filepath.Join(Product.Home(), "piprc"))
 }
 
 func MicroMambaRcFile() string {
-	return ExpandPath(filepath.Join(RobocorpHome(), "micromambarc"))
+	return ExpandPath(filepath.Join(Product.Home(), "micromambarc"))
 }
 
 func SettingsFile() string {
-	return ExpandPath(filepath.Join(RobocorpHome(), "settings.yaml"))
+	return ExpandPath(filepath.Join(Product.Home(), "settings.yaml"))
 }
 
 func CaBundleFile() string {
-	return ExpandPath(filepath.Join(RobocorpHome(), "ca-bundle.pem"))
-}
-
-func CaBundleDir() string {
-	return ExpandPath(RobocorpHome())
+	return ExpandPath(filepath.Join(Product.Home(), "ca-bundle.pem"))
 }
 
 func DefineVerbosity(silent, debug, trace bool) {

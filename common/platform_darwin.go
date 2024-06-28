@@ -11,6 +11,9 @@ import (
 const (
 	defaultRobocorpLocation = "$HOME/.robocorp"
 	defaultHoloLocation     = "/Users/Shared/robocorp/ht"
+
+	defaultSema4Location     = "$HOME/.sema4ai"
+	defaultSema4HoloLocation = "/Users/Shared/sema4ai/ht"
 )
 
 func ExpandPath(entry string) string {

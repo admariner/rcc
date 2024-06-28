@@ -79,7 +79,7 @@ func NewEnvironment(condafile, holozip string, restore, force bool, puller Catal
 
 	lockfile := common.HolotreeLock()
 	completed := pathlib.LockWaitMessage(lockfile, "Serialized environment creation [holotree lock]")
-	locker, err := pathlib.Locker(lockfile, 30000)
+	locker, err := pathlib.Locker(lockfile, 30000, common.SharedHolotree)
 	completed()
 	fail.On(err != nil, "Could not get lock for holotree. Quiting.")
 	defer locker.Release()
@@ -212,7 +212,7 @@ func RecordEnvironment(tree MutableLibrary, blueprint []byte, force bool, scorec
 }
 
 func RestoreLayersTo(tree MutableLibrary, identityfile string, targetDir string) conda.SkipLayer {
-	config, err := conda.ReadCondaYaml(identityfile)
+	config, err := conda.ReadPackageCondaYaml(identityfile)
 	if err != nil {
 		return conda.SkipNoLayers
 	}
@@ -261,7 +261,7 @@ func ComposeFinalBlueprint(userFiles []string, packfile string) (config robot.Ro
 
 	for _, filename := range filenames {
 		left = right
-		right, err = conda.ReadCondaYaml(filename)
+		right, err = conda.ReadPackageCondaYaml(filename)
 		fail.On(err != nil, "Failure: %v", err)
 		if left == nil {
 			continue

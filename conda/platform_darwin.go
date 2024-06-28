@@ -33,7 +33,7 @@ func CondaEnvironment() []string {
 	env := os.Environ()
 	env = append(env, fmt.Sprintf("MAMBA_ROOT_PREFIX=%s", common.MambaRootPrefix()))
 	if !common.DisableTempManagement() {
-		tempFolder := common.RobocorpTemp()
+		tempFolder := common.ProductTemp()
 		env = append(env, fmt.Sprintf("TEMP=%s", tempFolder))
 		env = append(env, fmt.Sprintf("TMP=%s", tempFolder))
 	}

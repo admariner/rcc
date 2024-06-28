@@ -78,14 +78,14 @@ func (it *DiagnosticStatus) AsJson() (string, error) {
 	return string(body), nil
 }
 
-func IsInsideRobocorpHome(location string) (_ bool, err error) {
+func IsInsideProductHome(location string) (_ bool, err error) {
 	defer fail.Around(&err)
 
 	candidate, err := filepath.Abs(location)
 	fail.On(err != nil, "Failed to get absolute path to %q, reason: %v", location, err)
 
-	rchome, err := filepath.Abs(RobocorpHome())
-	fail.On(err != nil, "Failed to get absolute path to ROBOCORP_HOME, reason: %v", err)
+	rchome, err := filepath.Abs(Product.Home())
+	fail.On(err != nil, "Failed to get absolute path to %s, reason: %v", Product.HomeVariable(), err)
 
 	for len(rchome) <= len(candidate) {
 		if rchome == candidate {

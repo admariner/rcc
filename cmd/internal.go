@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/robocorp/rcc/common"
 	"github.com/spf13/cobra"
 )
 
@@ -13,6 +14,8 @@ var internalCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(internalCmd)
-	internalCmd.PersistentFlags().StringVarP(&wskey, "wskey", "", "", "Cloud API workspace key (authorization).")
+	if common.Product.IsLegacy() {
+		rootCmd.AddCommand(internalCmd)
+		internalCmd.PersistentFlags().StringVarP(&wskey, "wskey", "", "", "Cloud API workspace key (authorization).")
+	}
 }

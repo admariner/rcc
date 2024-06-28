@@ -54,7 +54,7 @@ func makeQueryHandler(queries Partqueries, triggers chan string) http.HandlerFun
 
 func loadSingleCatalog(catalog string) (root *htfs.Root, err error) {
 	defer fail.Around(&err)
-	tempdir := filepath.Join(common.RobocorpTemp(), "rccremote")
+	tempdir := filepath.Join(common.ProductTemp(), "rccremote")
 	shadow, err := htfs.NewRoot(tempdir)
 	fail.On(err != nil, "Could not create root, reason: %v", err)
 	filename := filepath.Join(common.HololibCatalogLocation(), catalog)

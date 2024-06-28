@@ -38,6 +38,13 @@ Some of those effects might be:
   or tooling, might cause slowness when needed next time, or if builds are
   prevented it might even deny usage of those spaces
 
+## Maintenace and product families
+
+Since v18 of rcc, there are two different product families present. To
+explicitely maintain specific product family holotree, then either
+`--robocorp` or `--sema4ai` flag should be given. Both product families
+have their separate holotree libraries and spaces.
+
 ## Deleting catalogs and spaces
 
 Before you delete anything, you should be aware of those things and what is

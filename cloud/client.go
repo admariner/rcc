@@ -21,6 +21,7 @@ type internalClient struct {
 	endpoint string
 	client   *http.Client
 	tracing  bool
+	critical bool
 }
 
 type Request struct {
@@ -50,6 +51,7 @@ type Client interface {
 	NewClient(endpoint string) (Client, error)
 	WithTimeout(time.Duration) Client
 	WithTracing() Client
+	Uncritical() Client
 }
 
 func EnsureHttps(endpoint string) (string, error) {
@@ -72,6 +74,7 @@ func NewUnsafeClient(endpoint string) (Client, error) {
 		endpoint: endpoint,
 		client:   &http.Client{Transport: settings.Global.ConfiguredHttpTransport()},
 		tracing:  false,
+		critical: true,
 	}, nil
 }
 
@@ -84,7 +87,13 @@ func NewClient(endpoint string) (Client, error) {
 		endpoint: https,
 		client:   &http.Client{Transport: settings.Global.ConfiguredHttpTransport()},
 		tracing:  false,
+		critical: true,
 	}, nil
+}
+
+func (it *internalClient) Uncritical() Client {
+	it.critical = false
+	return it
 }
 
 func (it *internalClient) WithTimeout(timeout time.Duration) Client {
@@ -94,7 +103,8 @@ func (it *internalClient) WithTimeout(timeout time.Duration) Client {
 			Transport: settings.Global.ConfiguredHttpTransport(),
 			Timeout:   timeout,
 		},
-		tracing: it.tracing,
+		tracing:  it.tracing,
+		critical: it.critical,
 	}
 }
 
@@ -103,6 +113,7 @@ func (it *internalClient) WithTracing() Client {
 		endpoint: it.endpoint,
 		client:   it.client,
 		tracing:  true,
+		critical: it.critical,
 	}
 }
 
@@ -142,7 +153,11 @@ func (it *internalClient) does(method string, request *Request) *Response {
 	}
 	httpResponse, err := it.client.Do(httpRequest)
 	if err != nil {
-		common.Error("http.Do", err)
+		if it.critical {
+			common.Error("http.Do", err)
+		} else {
+			common.Uncritical("http.Do", err)
+		}
 		response.Status = 9002
 		response.Err = err
 		return response

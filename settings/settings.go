@@ -39,7 +39,7 @@ func HasCustomSettings() bool {
 }
 
 func DefaultSettings() ([]byte, error) {
-	return blobs.Asset("assets/settings.yaml")
+	return blobs.Asset(common.Product.DefaultSettingsYamlFile())
 }
 
 func DefaultSettingsLayer() *Settings {

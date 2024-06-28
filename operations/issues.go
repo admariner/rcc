@@ -31,7 +31,7 @@ func loadToken(reportFile string) (Token, error) {
 }
 
 func createIssueZip(attachmentsFiles []string) (string, error) {
-	zipfile := filepath.Join(common.RobocorpTemp(), "attachments.zip")
+	zipfile := filepath.Join(common.ProductTemp(), "attachments.zip")
 	zipper, err := newZipper(zipfile)
 	if err != nil {
 		return "", err
@@ -56,7 +56,7 @@ func createIssueZip(attachmentsFiles []string) (string, error) {
 }
 
 func createDiagnosticsReport(robotfile string) (string, *common.DiagnosticStatus, error) {
-	file := filepath.Join(common.RobocorpTemp(), "diagnostics.txt")
+	file := filepath.Join(common.ProductTemp(), "diagnostics.txt")
 	diagnostics, err := ProduceDiagnostics(file, robotfile, false, false, false)
 	if err != nil {
 		return "", nil, err
@@ -77,7 +77,7 @@ func ReportIssue(email, robotFile, reportFile string, attachmentsFiles []string,
 	if len(issueHost) == 0 {
 		return nil
 	}
-	cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.submit.issue", common.Version)
+	cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.submit.issue", common.Version)
 	token, err := loadToken(reportFile)
 	if err != nil {
 		return err

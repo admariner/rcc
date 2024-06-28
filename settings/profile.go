@@ -47,7 +47,7 @@ func (it *Profile) LoadFrom(filename string) error {
 
 func (it *Profile) Import() (err error) {
 	basename := fmt.Sprintf("profile_%s.yaml", strings.ToLower(it.Name))
-	filename := common.ExpandPath(filepath.Join(common.RobocorpHome(), basename))
+	filename := common.ExpandPath(filepath.Join(common.Product.Home(), basename))
 	return it.SaveAs(filename)
 }
 

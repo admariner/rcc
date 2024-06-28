@@ -545,7 +545,7 @@ func LoadCatalogs() ([]string, Roots) {
 
 func CatalogLoader(catalog string, at int, roots Roots) anywork.Work {
 	return func() {
-		tempdir := filepath.Join(common.RobocorpTemp(), "shadow")
+		tempdir := filepath.Join(common.ProductTemp(), "shadow")
 		shadow, err := NewRoot(tempdir)
 		if err != nil {
 			panic(fmt.Sprintf("Temp dir %q, reason: %v", tempdir, err))

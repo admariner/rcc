@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	rccpov   = `From rcc %q point of view, %q was`
+	rccpov   = `From rcc %q (controller: %q) point of view, %q was`
 	maxSteps = 15
 )
 
@@ -78,7 +78,7 @@ func Guard(truth bool, code int, format string, rest ...interface{}) {
 }
 
 func RccPointOfView(context string, err error) {
-	explain := fmt.Sprintf(rccpov, common.Version, context)
+	explain := fmt.Sprintf(rccpov, common.Version, common.ControllerType, context)
 	printer := Lowlight
 	message := fmt.Sprintf("@@@  %s SUCCESS. @@@", explain)
 	journal := fmt.Sprintf("%s SUCCESS.", explain)

@@ -14,11 +14,11 @@ func osSpecificHolotreeSharing(enable bool) {
 		return
 	}
 	pathlib.ForceShared()
-	parent := filepath.Dir(common.HoloLocation())
+	parent := filepath.Dir(common.Product.HoloLocation())
 	_, err := pathlib.ForceSharedDir(parent)
 	pretty.Guard(err == nil, 1, "Could not enable shared location at %q, reason: %v", parent, err)
-	_, err = pathlib.ForceSharedDir(common.HoloLocation())
-	pretty.Guard(err == nil, 2, "Could not enable shared location at %q, reason: %v", common.HoloLocation(), err)
+	_, err = pathlib.ForceSharedDir(common.Product.HoloLocation())
+	pretty.Guard(err == nil, 2, "Could not enable shared location at %q, reason: %v", common.Product.HoloLocation(), err)
 	err = os.WriteFile(common.SharedMarkerLocation(), []byte(common.Version), 0644)
 	pretty.Guard(err == nil, 3, "Could not write %q, reason: %v", common.SharedMarkerLocation(), err)
 }

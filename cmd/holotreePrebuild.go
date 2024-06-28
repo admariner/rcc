@@ -8,10 +8,12 @@ import (
 
 	"github.com/robocorp/rcc/cloud"
 	"github.com/robocorp/rcc/common"
+	"github.com/robocorp/rcc/conda"
 	"github.com/robocorp/rcc/htfs"
 	"github.com/robocorp/rcc/operations"
 	"github.com/robocorp/rcc/pathlib"
 	"github.com/robocorp/rcc/pretty"
+	"github.com/robocorp/rcc/set"
 	"github.com/spf13/cobra"
 )
 
@@ -111,19 +113,29 @@ var holotreePrebuildCmd = &cobra.Command{
 		configurations := metafileExpansion(args, metafileFlag)
 		total, failed := len(configurations), 0
 		success := make([]string, 0, total)
+		exporting := len(exportFile) > 0
 		for at, configfile := range configurations {
+			environment, err := conda.ReadPackageCondaYaml(configfile)
+			if err != nil {
+				pretty.Warning("%d/%d: Failed to load %q, reason: %v (ignored)", at+1, total, configfile, err)
+				continue
+			}
 			pretty.Note("%d/%d: Now building config %q", at+1, total, configfile)
-			_, _, err := htfs.NewEnvironment(configfile, "", false, forceBuild, operations.PullCatalog)
+			_, _, err = htfs.NewEnvironment(configfile, "", false, forceBuild, operations.PullCatalog)
 			if err != nil {
 				failed += 1
 				pretty.Warning("%d/%d: Holotree recording error: %v", at+1, total, err)
 			} else {
-				if common.FreshlyBuildEnvironment {
-					success = append(success, htfs.CatalogName(common.EnvironmentHash))
+				for _, hash := range environment.FingerprintLayers() {
+					key := htfs.CatalogName(hash)
+					if exporting && !set.Member(success, key) {
+						success = append(success, key)
+						pretty.Note("Added catalog %q to be exported.", key)
+					}
 				}
 			}
 		}
-		if len(exportFile) > 0 && len(success) > 0 {
+		if exporting && len(success) > 0 {
 			holotreeExport(selectCatalogs(success), nil, exportFile)
 		}
 		pretty.Guard(failed == 0, 2, "%d out of %d environment builds failed! See output above for details.", failed, total)

@@ -41,6 +41,6 @@ branding:
 
 meta:
   name: default
-  description: default settings.yaml internal to rcc
+  description: Robocorp.com default settings.yaml internal to rcc
   source: builtin
   version: 2023.09

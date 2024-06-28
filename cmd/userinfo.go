@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/robocorp/rcc/cloud"
 	"github.com/robocorp/rcc/common"
@@ -14,8 +15,8 @@ import (
 var userinfoCmd = &cobra.Command{
 	Use:     "userinfo",
 	Aliases: []string{"user"},
-	Short:   "Query user information from Robocorp Control Room.",
-	Long:    "Query user information from Robocorp Control Room.",
+	Short:   fmt.Sprintf("Query user information from %s Control Room.", common.Product.Name()),
+	Long:    fmt.Sprintf("Query user information from %s Control Room.", common.Product.Name()),
 	Run: func(cmd *cobra.Command, args []string) {
 		if common.DebugFlag() {
 			defer common.Stopwatch("Userinfo query lasted").Report()

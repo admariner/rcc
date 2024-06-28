@@ -1,6 +1,7 @@
 package conda
 
 import (
+	"fmt"
 	"regexp"
 
 	"github.com/robocorp/rcc/common"
@@ -36,7 +37,7 @@ func ValidateLocations() bool {
 	checked := map[string]string{
 		//"Environment variable 'TMP'":        os.Getenv("TMP"),
 		//"Environment variable 'TEMP'":       os.Getenv("TEMP"),
-		"Path to 'ROBOCORP_HOME' directory": common.RobocorpHome(),
+		fmt.Sprintf("Path to '%s' directory", common.Product.HomeVariable()): common.Product.Home(),
 	}
 	// 7.1.2021 -- just warnings for now -- JMP:FIXME:JMP later
 	validateLocations(checked)

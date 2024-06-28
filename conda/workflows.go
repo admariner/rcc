@@ -118,9 +118,9 @@ func (it InstallObserver) Write(content []byte) (int, error) {
 
 func (it InstallObserver) HasFailures(targetFolder string) bool {
 	if it["safetyerror"] && it["corrupted"] && len(it) > 2 {
-		cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.env.creation.failure", common.Version)
+		cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.env.creation.failure", common.Version)
 		renameRemove(targetFolder)
-		location := filepath.Join(common.RobocorpHome(), "pkgs")
+		location := filepath.Join(common.Product.Home(), "pkgs")
 		common.Log("%sWARNING! Conda environment is unstable, see above error.%s", pretty.Red, pretty.Reset)
 		common.Log("%sWARNING! To fix it, try to remove directory: %v%s", pretty.Red, location, pretty.Reset)
 		return true
@@ -146,7 +146,7 @@ func newLive(yaml, condaYaml, requirementsText, key string, force, freshInstall 
 	success, fatal := newLiveInternal(yaml, condaYaml, requirementsText, key, force, freshInstall, skip, finalEnv, recorder)
 	if !success && !force && !fatal && !common.NoRetryBuild {
 		journal.CurrentBuildEvent().Rebuild()
-		cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.env.creation.retry", common.Version)
+		cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.env.creation.retry", common.Version)
 		common.Debug("===  second try phase ===")
 		common.Timeline("second try.")
 		common.ForceDebug()
@@ -194,7 +194,7 @@ func micromambaLayer(fingerprint, condaYaml, targetFolder string, stopwatch fmt.
 	tee := io.MultiWriter(observer, planWriter)
 	code, err := shell.New(CondaEnvironment(), ".", mambaCommand.CLI()...).Tracked(tee, false)
 	if err != nil || code != 0 {
-		cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.env.fatal.micromamba", fmt.Sprintf("%d_%x", code, code))
+		cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.env.fatal.micromamba", fmt.Sprintf("%d_%x", code, code))
 		common.Timeline("micromamba fail.")
 		common.Fatal(fmt.Sprintf("Micromamba [%d/%x]", code, code), err)
 		pretty.RccPointOfView(micromambaInstall, err)
@@ -239,7 +239,7 @@ func uvLayer(fingerprint, requirementsText, targetFolder string, stopwatch fmt.S
 		common.Debug("===  uv install phase ===")
 		code, err := LiveExecution(planWriter, targetFolder, uvCommand.CLI()...)
 		if err != nil || code != 0 {
-			cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.env.fatal.uv", fmt.Sprintf("%d_%x", code, code))
+			cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.env.fatal.uv", fmt.Sprintf("%d_%x", code, code))
 			common.Timeline("uv fail.")
 			common.Fatal(fmt.Sprintf("uv [%d/%x]", code, code), err)
 			pretty.RccPointOfView(uvInstall, err)
@@ -269,7 +269,7 @@ func pipLayer(fingerprint, requirementsText, targetFolder string, stopwatch fmt.
 		pretty.Progress(8, "Skipping pip install phase -- no pip dependencies.")
 	} else {
 		if !pyok {
-			cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.env.fatal.pip", fmt.Sprintf("%d_%x", 9999, 9999))
+			cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.env.fatal.pip", fmt.Sprintf("%d_%x", 9999, 9999))
 			common.Timeline("pip fail. no python found.")
 			common.Fatal("pip fail. no python found.", errors.New("No python found, but required!"))
 			return false, false, pipUsed, ""
@@ -283,7 +283,7 @@ func pipLayer(fingerprint, requirementsText, targetFolder string, stopwatch fmt.
 		common.Debug("===  pip install phase ===")
 		code, err := LiveExecution(planWriter, targetFolder, pipCommand.CLI()...)
 		if err != nil || code != 0 {
-			cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.env.fatal.pip", fmt.Sprintf("%d_%x", code, code))
+			cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.env.fatal.pip", fmt.Sprintf("%d_%x", code, code))
 			common.Timeline("pip fail.")
 			common.Fatal(fmt.Sprintf("Pip [%d/%x]", code, code), err)
 			pretty.RccPointOfView(pipInstall, err)
@@ -438,7 +438,7 @@ func newLiveInternal(yaml, condaYaml, requirementsText, key string, force, fresh
 		common.Debug("===  pip check phase ===")
 		code, err := LiveExecution(planWriter, targetFolder, pipCommand.CLI()...)
 		if err != nil || code != 0 {
-			cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.env.fatal.pipcheck", fmt.Sprintf("%d_%x", code, code))
+			cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.env.fatal.pipcheck", fmt.Sprintf("%d_%x", code, code))
 			common.Timeline("pip check fail.")
 			common.Fatal(fmt.Sprintf("Pip check [%d/%x]", code, code), err)
 			return false, false
@@ -469,8 +469,8 @@ func LogUnifiedEnvironment(content []byte) {
 	common.Log("FINAL unified conda environment descriptor:\n---\n%v---", yaml)
 }
 
-func finalUnifiedEnvironment(filename string, verbose bool) (string, *Environment, error) {
-	right, err := ReadCondaYaml(filename)
+func finalUnifiedEnvironment(filename string) (string, *Environment, error) {
+	right, err := ReadPackageCondaYaml(filename)
 	if err != nil {
 		return "", nil, err
 	}
@@ -482,7 +482,7 @@ func finalUnifiedEnvironment(filename string, verbose bool) (string, *Environmen
 }
 
 func temporaryConfig(condaYaml, requirementsText, filename string) (string, string, *Environment, error) {
-	yaml, right, err := finalUnifiedEnvironment(filename, true)
+	yaml, right, err := finalUnifiedEnvironment(filename)
 	if err != nil {
 		return "", "", nil, err
 	}
@@ -497,11 +497,11 @@ func temporaryConfig(condaYaml, requirementsText, filename string) (string, stri
 }
 
 func LegacyEnvironment(recorder Recorder, force bool, skip SkipLayer, configuration string) error {
-	cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.env.create.start", common.Version)
+	cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.env.create.start", common.Version)
 
-	lockfile := common.RobocorpLock()
+	lockfile := common.ProductLock()
 	completed := pathlib.LockWaitMessage(lockfile, "Serialized environment creation [robocorp lock]")
-	locker, err := pathlib.Locker(lockfile, 30000)
+	locker, err := pathlib.Locker(lockfile, 30000, false)
 	completed()
 	if err != nil {
 		common.Log("Could not get lock on live environment. Quitting!")

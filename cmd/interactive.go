@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/robocorp/rcc/common"
 	"github.com/spf13/cobra"
 )
 
@@ -13,5 +14,7 @@ Do not try to use these in automation, they will fail there.`,
 }
 
 func init() {
-	rootCmd.AddCommand(interactiveCmd)
+	if common.Product.IsLegacy() {
+		rootCmd.AddCommand(interactiveCmd)
+	}
 }

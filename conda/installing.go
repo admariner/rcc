@@ -62,7 +62,7 @@ func DoExtract(delay time.Duration) bool {
 		common.Fatal("Could not make micromamba executalbe, reason:", err)
 		return false
 	}
-	cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.micromamba.extract", common.Version)
+	cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.micromamba.extract", common.Version)
 	common.PlatformSyncDelay()
 	return true
 }

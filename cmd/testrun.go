@@ -53,7 +53,7 @@ var testrunCmd = &cobra.Command{
 		targetRobot := robot.DetectConfigurationName(workarea)
 		simple, config, todo, label := operations.LoadTaskWithEnvironment(targetRobot, runTask, forceFlag)
 		defer common.Log("Moving outputs to %v directory.", testrunDir)
-		cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.cli.testrun", common.Version)
+		cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.cli.testrun", common.Version)
 		commandline := todo.Commandline()
 		commandline = append(commandline, args...)
 		operations.SelectExecutionModel(captureRunFlags(false), simple, commandline, config, todo, label, false, nil)

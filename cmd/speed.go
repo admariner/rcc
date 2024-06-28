@@ -69,8 +69,8 @@ var speedtestCmd = &cobra.Command{
 			common.DefineVerbosity(true, false, false)
 		}
 		go workingWorm(signal, timing, debug)
-		folder := common.RobocorpTemp()
-		pretty.DebugNote("Speed test will force temporary ROBOCORP_HOME to be %q while testing.", folder)
+		folder := common.ProductTemp()
+		pretty.DebugNote("Speed test will force temporary %s to be %q while testing.", common.Product.HomeVariable(), folder)
 		err := os.RemoveAll(folder)
 		pretty.Guard(err == nil, 4, "Error: %v", err)
 		content, err := blobs.Asset("assets/speedtest.yaml")
@@ -78,11 +78,11 @@ var speedtestCmd = &cobra.Command{
 		condafile := filepath.Join(folder, "speedtest.yaml")
 		err = pathlib.WriteFile(condafile, content, 0o666)
 		pretty.Guard(err == nil, 2, "Error: %v", err)
-		common.ForcedRobocorpHome = folder
+		common.Product.ForceHome(folder)
 		_, score, err := htfs.NewEnvironment(condafile, "", true, true, operations.PullCatalog)
 		common.DefineVerbosity(silent, debug, trace)
 		pretty.Guard(err == nil, 3, "Error: %v", err)
-		common.ForcedRobocorpHome = ""
+		common.Product.ForceHome("")
 		err = os.RemoveAll(folder)
 		pretty.Guard(err == nil, 4, "Error: %v", err)
 		score.Done()

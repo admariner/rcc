@@ -94,6 +94,10 @@ This is state, where all environments are created for single user, and cannot
 be shared between users. These must be build and managed privately and using
 them normally requires internet access.
 
+## Product family
+
+This is reference to either Robocorp products or Sema4.ai products.
+
 ## Profile
 
 Profile is set of settings that describes network and Robocorp configurations

@@ -29,6 +29,10 @@ func (it *MockClient) NewClient(endpoint string) (cloud.Client, error) {
 	return it, nil
 }
 
+func (it *MockClient) Uncritical() cloud.Client {
+	return it
+}
+
 func (it *MockClient) WithTimeout(time.Duration) cloud.Client {
 	return it
 }

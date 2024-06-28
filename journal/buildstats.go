@@ -402,7 +402,7 @@ func serialize(event *BuildEvent) (err error) {
 
 	blob, err := json.Marshal(event)
 	fail.On(err != nil, "Could not serialize event: %v -> %v", event.What, err)
-	return appendJournal(CurrentEventFilename(), blob)
+	return AppendJournal(CurrentEventFilename(), blob)
 }
 
 func NewBuildEvent() *BuildEvent {

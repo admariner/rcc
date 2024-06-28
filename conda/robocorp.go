@@ -13,6 +13,7 @@ import (
 	"github.com/robocorp/rcc/blobs"
 	"github.com/robocorp/rcc/common"
 	"github.com/robocorp/rcc/pathlib"
+	"github.com/robocorp/rcc/pretty"
 	"github.com/robocorp/rcc/settings"
 	"github.com/robocorp/rcc/shell"
 	"github.com/robocorp/rcc/xviper"
@@ -137,10 +138,27 @@ func injectNetworkEnvironment(environment []string) []string {
 	return environment
 }
 
+func removeIncompatibleEnvironmentVariables(environment []string, unwanted ...string) []string {
+	result := make([]string, 0, len(environment))
+search:
+	for _, here := range environment {
+		parts := strings.Split(strings.TrimSpace(here), "=")
+		for _, name := range unwanted {
+			if strings.EqualFold(name, parts[0]) {
+				pretty.Warning("Removing incompatible variable %q from environment.", here)
+				continue search
+			}
+		}
+		result = append(result, here)
+	}
+	return result
+}
+
 func CondaExecutionEnvironment(location string, inject []string, full bool) []string {
 	environment := make([]string, 0, 100)
 	if full {
 		environment = append(environment, os.Environ()...)
+		environment = removeIncompatibleEnvironmentVariables(environment, "VIRTUAL_ENV")
 	}
 	if inject != nil && len(inject) > 0 {
 		environment = append(environment, inject...)
@@ -156,15 +174,15 @@ func CondaExecutionEnvironment(location string, inject []string, full bool) []st
 	if !common.DisablePycManagement() {
 		environment = append(environment,
 			"PYTHONDONTWRITEBYTECODE=x",
-			"PYTHONPYCACHEPREFIX="+common.RobocorpTemp(),
+			"PYTHONPYCACHEPREFIX="+common.ProductTemp(),
 		)
 	} else {
 		common.Timeline(".pyc file management was disabled.")
 	}
 	if !common.DisableTempManagement() {
 		environment = append(environment,
-			"TEMP="+common.RobocorpTemp(),
-			"TMP="+common.RobocorpTemp(),
+			"TEMP="+common.ProductTemp(),
+			"TMP="+common.ProductTemp(),
 		)
 	} else {
 		common.Timeline("temp directory management was disabled.")
@@ -178,7 +196,7 @@ func CondaExecutionEnvironment(location string, inject []string, full bool) []st
 		"PYTHONSTARTUP=",
 		"PYTHONEXECUTABLE=",
 		"PYTHONNOUSERSITE=1",
-		"ROBOCORP_HOME="+common.RobocorpHome(),
+		fmt.Sprintf("%s=%s", common.Product.HomeVariable(), common.Product.Home()),
 		"RCC_ENVIRONMENT_HASH="+common.EnvironmentHash,
 		"RCC_INSTALLATION_ID="+xviper.TrackingIdentity(),
 		"RCC_HOLOTREE_SPACE_ROOT="+location,
@@ -277,7 +295,7 @@ func HasMicroMamba() bool {
 }
 
 func LocalChannel() (string, bool) {
-	basefolder := filepath.Join(common.RobocorpHome(), "channel")
+	basefolder := filepath.Join(common.Product.Home(), "channel")
 	fullpath := filepath.Join(basefolder, "channeldata.json")
 	stats, err := os.Stat(fullpath)
 	if err != nil {

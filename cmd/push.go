@@ -16,8 +16,8 @@ import (
 
 var pushCmd = &cobra.Command{
 	Use:   "push",
-	Short: "Wrap the local directory and push it into Robocorp Control Room as a specific robot.",
-	Long:  "Wrap the local directory and push it into Robocorp Control Room as a specific robot.",
+	Short: fmt.Sprintf("Wrap the local directory and push it into %s Control Room as a specific robot.", common.Product.Name()),
+	Long:  fmt.Sprintf("Wrap the local directory and push it into %s Control Room as a specific robot.", common.Product.Name()),
 	Run: func(cmd *cobra.Command, args []string) {
 		if common.DebugFlag() {
 			defer common.Stopwatch("Push lasted").Report()
@@ -43,7 +43,7 @@ var pushCmd = &cobra.Command{
 		if err != nil {
 			pretty.Exit(4, "Error: %v", err)
 		}
-		cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.cli.push", common.Version)
+		cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.cli.push", common.Version)
 		pretty.Ok()
 	},
 }

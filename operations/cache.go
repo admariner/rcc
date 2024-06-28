@@ -62,7 +62,7 @@ func cacheLocation() string {
 	if len(reference) > 0 {
 		return filepath.Join(filepath.Dir(reference), "rcccache.yaml")
 	} else {
-		return filepath.Join(common.RobocorpHome(), "rcccache.yaml")
+		return filepath.Join(common.Product.Home(), "rcccache.yaml")
 	}
 }
 
@@ -70,7 +70,7 @@ func SummonCache() (*Cache, error) {
 	var result Cache
 	lockfile := cacheLockFile()
 	completed := pathlib.LockWaitMessage(lockfile, "Serialized cache access [cache lock]")
-	locker, err := pathlib.Locker(lockfile, 125)
+	locker, err := pathlib.Locker(lockfile, 125, false)
 	completed()
 	if err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func (it *Cache) Save() error {
 	}
 	lockfile := cacheLockFile()
 	completed := pathlib.LockWaitMessage(lockfile, "Serialized cache access [cache lock]")
-	locker, err := pathlib.Locker(lockfile, 125)
+	locker, err := pathlib.Locker(lockfile, 125, false)
 	completed()
 	if err != nil {
 		return err

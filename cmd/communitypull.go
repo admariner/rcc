@@ -56,8 +56,10 @@ var communityPullCmd = &cobra.Command{
 }
 
 func init() {
-	communityCmd.AddCommand(communityPullCmd)
-	rootCmd.AddCommand(communityPullCmd)
-	communityPullCmd.Flags().StringVarP(&branch, "branch", "b", "main", "Branch/tag/commitid to use as basis for robot.")
-	communityPullCmd.Flags().StringVarP(&directory, "directory", "d", ".", "The root directory to extract the robot into.")
+	if common.Product.IsLegacy() {
+		communityCmd.AddCommand(communityPullCmd)
+		rootCmd.AddCommand(communityPullCmd)
+		communityPullCmd.Flags().StringVarP(&branch, "branch", "b", "main", "Branch/tag/commitid to use as basis for robot.")
+		communityPullCmd.Flags().StringVarP(&directory, "directory", "d", ".", "The root directory to extract the robot into.")
+	}
 }

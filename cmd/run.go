@@ -30,7 +30,7 @@ in your own machine.`,
 			defer common.Stopwatch("Task run lasted").Report()
 		}
 		simple, config, todo, label := operations.LoadTaskWithEnvironment(robotFile, runTask, forceFlag)
-		cloud.BackgroundMetric(common.ControllerIdentity(), "rcc.cli.run", common.Version)
+		cloud.InternalBackgroundMetric(common.ControllerIdentity(), "rcc.cli.run", common.Version)
 		commandline := todo.Commandline()
 		commandline = append(commandline, args...)
 		operations.SelectExecutionModel(captureRunFlags(false), simple, commandline, config, todo, label, interactiveFlag, nil)
